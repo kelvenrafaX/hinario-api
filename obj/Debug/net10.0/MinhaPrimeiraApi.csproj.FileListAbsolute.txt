@@ -36,3 +36,4 @@
 /Users/raissaduarteb/Desktop/dev/MinhaPrimeiraApi/bin/Debug/net10.0/Microsoft.EntityFrameworkCore.Relational.dll
 /Users/raissaduarteb/Desktop/dev/MinhaPrimeiraApi/bin/Debug/net10.0/Npgsql.dll
 /Users/raissaduarteb/Desktop/dev/MinhaPrimeiraApi/bin/Debug/net10.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll
+/Users/raissaduarteb/Desktop/dev/MinhaPrimeiraApi/obj/Debug/net10.0/MinhaPrimeiraApi.sourcelink.json

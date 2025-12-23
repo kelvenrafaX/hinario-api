@@ -8,11 +8,11 @@ namespace MinhaPrimeiraApi.Models
     {
         [Key]
         [Column("id")]
-        public int Id {get ; private set;}
+        public int Id {get ; set;}
         [Column("letra")]
-        public string Letra {get ; private set;}
+        public string Letra {get ; set;}
         [Column("titulo")]
-        public string Titulo {get ; private set;}
+        public string Titulo {get ; set;}
 
         public Hinos(string letra, string titulo)
         {
