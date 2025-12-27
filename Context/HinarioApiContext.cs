@@ -10,6 +10,6 @@ namespace MinhaPrimeiraApi.Context
         {
         }
 
-        public DbSet<Hinos> Hinos { get; set; } = null!;
+        public DbSet<Hino> Hinos { get; set; } = null!;
     }
 }

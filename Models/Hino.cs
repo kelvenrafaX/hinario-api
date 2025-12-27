@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MinhaPrimeiraApi.Models
 {
     [Table("hinos")]
-    public class Hinos
+    public class Hino
     {
         [Key]
         [Column("id")]
@@ -14,10 +14,17 @@ namespace MinhaPrimeiraApi.Models
         [Column("titulo")]
         public string Titulo {get ; set;}
 
-        public Hinos(string letra, string titulo)
+        public Hino(string letra, string titulo)
         {
             Letra = letra ?? throw new ArgumentNullException(nameof(letra));
             Titulo = titulo;
         }
+    }
+
+    public class Usuario
+    {
+        public string Nome { get; set; }
+        public int Idade { get; set; }
+        public bool Ativo { get; set; }
     }
 }

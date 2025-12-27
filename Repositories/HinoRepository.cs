@@ -11,14 +11,24 @@ public class HinoRepository : IHinoRepository
         _context = context;
     }
 
-    public List<Hinos> GetAll()
+    public List<Hino> GetAll()
     {
         return _context.Hinos.ToList();
     }
 
-    public void Add(Hinos hinos)
+    public void Add(Hino hinos)
     {
         _context.Hinos.Add(hinos);
         _context.SaveChanges();
+    }
+    public void Update(Hino hinos)
+    {
+        _context.Hinos.Update(hinos);
+        _context.SaveChanges();
+    }
+
+    public object GetById(int id)
+    {
+        throw new NotImplementedException();
     }
 }

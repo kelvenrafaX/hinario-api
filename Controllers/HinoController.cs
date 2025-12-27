@@ -20,10 +20,27 @@ public class HinoController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateHino([FromBody] Hinos hino)
+    public IActionResult CreateHino([FromBody] Hino hino)
     {
         Console.WriteLine(hino.Id);
         _hinoRepository.Add(hino);
         return CreatedAtAction(nameof(CreateHino), new { id = hino.Id }, hino);
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateHino(int id, [FromBody] Hino hino)
+    {
+        if (id != hino.Id)
+        {
+            return BadRequest("id do hino não corresponde ao id da rota");
+        }
+
+        var hinoExistente = _hinoRepository.GetById(id);
+
+        if (hinoExistente == null){
+        return NotFound();}
+
+        _hinoRepository.Update(hino);
+        return NoContent();
     }
 }

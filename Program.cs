@@ -5,6 +5,18 @@ using MinhaPrimeiraApi.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFront",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
+
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<HinarioApiContext>(options =>
@@ -15,6 +27,8 @@ builder.Services.AddScoped<IHinoRepository, HinoRepository>();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseCors("AllowFront");
 
 if (app.Environment.IsDevelopment())
 {
