@@ -16,6 +16,11 @@ public class HinoRepository : IHinoRepository
         return _context.Hinos.ToList();
     }
 
+    public List<Hino> Pesquisar(string texto)
+    {
+        return _context.Hinos.Where(hino => hino.Letra.Contains(texto)).ToList();
+    }
+
     public void Add(Hino hinos)
     {
         _context.Hinos.Add(hinos);

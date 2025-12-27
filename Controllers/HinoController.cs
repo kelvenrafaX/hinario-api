@@ -19,6 +19,15 @@ public class HinoController : ControllerBase
         return Ok(_hinoRepository.GetAll());
     }
 
+    // FromRoute => /api/hino/pesquisar/paz
+    // FromQuery => /api/hino/pesquisar?texto=paz
+
+    [HttpGet("pesquisar")]
+    public IActionResult PesquisarHinos([FromQuery] string texto)
+    {
+        return Ok(_hinoRepository.Pesquisar(texto));
+    }
+
     [HttpPost]
     public IActionResult CreateHino([FromBody] Hino hino)
     {
