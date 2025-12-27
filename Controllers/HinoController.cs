@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MinhaPrimeiraApi.Interfaces;
 using MinhaPrimeiraApi.Models;
+using MinhaPrimeiraApi.Utils;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -25,7 +26,45 @@ public class HinoController : ControllerBase
     [HttpGet("pesquisar")]
     public IActionResult PesquisarHinos([FromQuery] string texto)
     {
-        return Ok(_hinoRepository.Pesquisar(texto));
+        if (string.IsNullOrWhiteSpace(texto))
+        {
+            return Ok(new List<Hino>());
+        }
+
+        var hinos = _hinoRepository.Pesquisar(texto);
+
+        // Normalizar o texto de busca
+        var textoNormalizado = TextNormalizer.Normalizar(texto);
+        var palavras = textoNormalizado.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        if (palavras.Length == 0)
+        {
+            return Ok(new List<Hino>());
+        }
+
+        // Ordenar hinos por prioridade
+        var hinosOrdenados = hinos.OrderBy(hino =>
+        {
+            var letraNormalizada = TextNormalizer.Normalizar(hino.Letra);
+            
+            // 1º prioridade: palavras em sequência
+            var sequenciaCompleta = string.Join(" ", palavras);
+            if (letraNormalizada.Contains(sequenciaCompleta))
+            {
+                return 1;
+            }
+
+            // 2º prioridade: todas as palavras presentes (mas não necessariamente em sequência)
+            if (palavras.All(palavra => letraNormalizada.Contains(palavra)))
+            {
+                return 2;
+            }
+
+            // 3º prioridade: apenas algumas palavras presentes
+            return 3;
+        }).ThenBy(hino => hino.Id).ToList();
+
+        return Ok(hinosOrdenados);
     }
 
     [HttpPost]
