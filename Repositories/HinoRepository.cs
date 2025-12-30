@@ -57,8 +57,10 @@ public class HinoRepository : IHinoRepository
         _context.SaveChanges();
     }
 
-    public object GetById(int id)
-    {
-        throw new NotImplementedException();
-    }
+
+
+ public Hino? GetById(int id)
+{
+    return _context.Hinos.Find(id);
+}
 }

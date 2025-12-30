@@ -8,6 +8,6 @@ namespace MinhaPrimeiraApi.Interfaces
         List<Hino> Pesquisar(string texto);
         void Add(Hino hinos);
         void Update(Hino hinos);
-        object GetById(int id);
+        Hino? GetById(int id);
     }
 }

@@ -91,4 +91,16 @@ public class HinoController : ControllerBase
         _hinoRepository.Update(hino);
         return NoContent();
     }
+
+
+    [HttpGet("{id}")]
+    public IActionResult GetHino(int id)
+    {
+        var hino = _hinoRepository.GetById(id);
+        if (hino == null)
+        {
+            return NotFound();
+        }
+        return Ok(hino);
+    }
 }
