@@ -51,6 +51,13 @@ public class HinoRepository : IHinoRepository
         _context.Hinos.Add(hinos);
         _context.SaveChanges();
     }
+
+    public void AddRange(List<Hino> hinos)
+    {
+        _context.Hinos.AddRange(hinos);
+        _context.SaveChanges();
+    }
+
     public void Update(Hino hinos)
     {
         _context.Hinos.Update(hinos);
