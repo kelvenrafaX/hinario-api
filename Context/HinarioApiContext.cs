@@ -11,5 +11,15 @@ namespace MinhaPrimeiraApi.Context
         }
 
         public DbSet<Hino> Hinos { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Hino>()
+                .HasIndex(h => h.Identificador)
+                .IsUnique()
+                .HasFilter("\"identificador\" IS NOT NULL");
+        }
     }
 }
