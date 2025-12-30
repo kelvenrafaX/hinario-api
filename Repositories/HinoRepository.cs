@@ -61,4 +61,9 @@ public class HinoRepository : IHinoRepository
     {
         throw new NotImplementedException();
     }
+
+    public Hino? GetByIdentificador(string identificador)
+    {
+        return _context.Hinos.FirstOrDefault(h => h.Identificador == identificador);
+    }
 }

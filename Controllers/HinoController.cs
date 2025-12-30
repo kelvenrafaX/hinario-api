@@ -20,6 +20,24 @@ public class HinoController : ControllerBase
         return Ok(_hinoRepository.GetAll());
     }
 
+    [HttpGet("identificador/{identificador}")]
+    public IActionResult GetHinoByIdentificador(string identificador)
+    {
+        if (string.IsNullOrWhiteSpace(identificador))
+        {
+            return BadRequest("Identificador não pode ser vazio");
+        }
+
+        var hino = _hinoRepository.GetByIdentificador(identificador);
+
+        if (hino == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(hino);
+    }
+
     // FromRoute => /api/hino/pesquisar/paz
     // FromQuery => /api/hino/pesquisar?texto=paz
 
