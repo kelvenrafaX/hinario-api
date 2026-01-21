@@ -7,6 +7,7 @@ namespace MinhaPrimeiraApi.Models
     public class Hino
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
         public int Id {get ; set;}
         [Column("identificador")]
