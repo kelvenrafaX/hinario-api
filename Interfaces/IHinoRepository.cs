@@ -9,7 +9,7 @@ namespace MinhaPrimeiraApi.Interfaces
         void Add(Hino hinos);
         void AddRange(List<Hino> hinos);
         void Update(Hino hinos);
-        object GetById(int id);
+        Hino? GetById(int id);
         Hino? GetByIdentificador(string identificador);
     }
 }

@@ -103,11 +103,27 @@ public class HinoController : ControllerBase
 
         var hinoExistente = _hinoRepository.GetById(id);
 
-        if (hinoExistente == null){
-        return NotFound();}
+        if (hinoExistente == null)
+            return NotFound();
 
-        _hinoRepository.Update(hino);
+        hinoExistente.Titulo = string.IsNullOrEmpty(hino.Titulo) ? hinoExistente.Titulo : hino.Titulo;
+        hinoExistente.Letra = string.IsNullOrEmpty(hino.Letra) ? hinoExistente.Letra : hino.Letra;
+        hinoExistente.Identificador = string.IsNullOrEmpty(hino.Identificador) ? hinoExistente.Identificador : hino.Identificador;
+
+        _hinoRepository.Update(hinoExistente);
         return NoContent();
+    }
+
+
+    [HttpGet("{id}")]
+    public IActionResult GetHino(int id)
+    {
+        var hino = _hinoRepository.GetById(id);
+        if (hino == null)
+        {
+            return NotFound();
+        }
+        return Ok(hino);
     }
 
     [HttpPost("importar")]
