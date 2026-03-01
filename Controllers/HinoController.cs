@@ -20,6 +20,24 @@ public class HinoController : ControllerBase
         return Ok(_hinoRepository.GetAll());
     }
 
+    [HttpGet("identificador/{identificador}")]
+    public IActionResult GetHinoByIdentificador(string identificador)
+    {
+        if (string.IsNullOrWhiteSpace(identificador))
+        {
+            return BadRequest("Identificador não pode ser vazio");
+        }
+
+        var hino = _hinoRepository.GetByIdentificador(identificador);
+
+        if (hino == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(hino);
+    }
+
     // FromRoute => /api/hino/pesquisar/paz
     // FromQuery => /api/hino/pesquisar?texto=paz
 
@@ -85,10 +103,115 @@ public class HinoController : ControllerBase
 
         var hinoExistente = _hinoRepository.GetById(id);
 
-        if (hinoExistente == null){
-        return NotFound();}
+        if (hinoExistente == null)
+            return NotFound();
 
-        _hinoRepository.Update(hino);
+        hinoExistente.Titulo = string.IsNullOrEmpty(hino.Titulo) ? hinoExistente.Titulo : hino.Titulo;
+        hinoExistente.Letra = string.IsNullOrEmpty(hino.Letra) ? hinoExistente.Letra : hino.Letra;
+        hinoExistente.Identificador = string.IsNullOrEmpty(hino.Identificador) ? hinoExistente.Identificador : hino.Identificador;
+
+        _hinoRepository.Update(hinoExistente);
         return NoContent();
+    }
+
+
+    [HttpGet("{id}")]
+    public IActionResult GetHino(int id)
+    {
+        var hino = _hinoRepository.GetById(id);
+        if (hino == null)
+        {
+            return NotFound();
+        }
+        return Ok(hino);
+    }
+
+    [HttpPost("importar")]
+    public IActionResult ImportarHinos([FromBody] List<HinoImportDto> hinosImport)
+    {
+        if (hinosImport == null || hinosImport.Count == 0)
+        {
+            return BadRequest("Lista de hinos não pode ser vazia");
+        }
+
+        var hinos = new List<Hino>();
+        var erros = new List<string>();
+
+        foreach (var hinoImport in hinosImport)
+        {
+            try
+            {
+                // Validar dados obrigatórios
+                if (string.IsNullOrWhiteSpace(hinoImport.Title))
+                {
+                    erros.Add($"Hino com ID {hinoImport.Id}: Título é obrigatório");
+                    continue;
+                }
+
+                var letra = hinoImport.Lyrics?.FullText ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(letra))
+                {
+                    erros.Add($"Hino '{hinoImport.Title}': Letra não encontrada");
+                    continue;
+                }
+
+                // Verificar se já existe um hino com o mesmo identificador
+                var identificador = hinoImport.Id.ToString();
+                var hinoExistente = _hinoRepository.GetByIdentificador(identificador);
+                
+                if (hinoExistente != null)
+                {
+                    erros.Add($"Hino '{hinoImport.Title}' (ID: {hinoImport.Id}): Já existe um hino com este identificador");
+                    continue;
+                }
+
+                var hino = new Hino
+                {
+                    Identificador = identificador,
+                    Titulo = hinoImport.Title,
+                    Letra = letra
+                };
+
+                hinos.Add(hino);
+            }
+            catch (Exception ex)
+            {
+                erros.Add($"Erro ao processar hino '{hinoImport.Title}': {ex.Message}");
+            }
+        }
+
+        if (hinos.Count == 0)
+        {
+            return BadRequest(new { 
+                mensagem = "Nenhum hino foi importado", 
+                erros = erros 
+            });
+        }
+
+        try
+        {
+            _hinoRepository.AddRange(hinos);
+            
+            var resultado = new
+            {
+                mensagem = $"Importação concluída: {hinos.Count} hino(s) importado(s) com sucesso",
+                importados = hinos.Count,
+                erros = erros.Count > 0 ? erros : null
+            };
+
+            if (erros.Count > 0)
+            {
+                return StatusCode(207, resultado); // 207 Multi-Status para indicar sucesso parcial
+            }
+
+            return Ok(resultado);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
+                mensagem = "Erro ao salvar hinos no banco de dados", 
+                erro = ex.Message 
+            });
+        }
     }
 }

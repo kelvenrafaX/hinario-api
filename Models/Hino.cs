@@ -7,12 +7,20 @@ namespace MinhaPrimeiraApi.Models
     public class Hino
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("id")]
         public int Id {get ; set;}
+        [Column("identificador")]
+        [MaxLength(50)]
+        public string? Identificador {get ; set;}
         [Column("letra")]
         public string Letra {get ; set;}
         [Column("titulo")]
         public string Titulo {get ; set;}
+
+        public Hino()
+        {
+        }
 
         public Hino(string letra, string titulo)
         {

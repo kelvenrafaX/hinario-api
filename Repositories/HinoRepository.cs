@@ -40,7 +40,7 @@ public class HinoRepository : IHinoRepository
         var hinosFiltrados = todosHinos.Where(hino =>
         {
             var letraNormalizada = TextNormalizer.Normalizar(hino.Letra);
-            return palavras.Any(palavra => letraNormalizada.Contains(palavra));
+            return palavras.Any(palavra => letraNormalizada.Contains(palavra) ) ;
         }).ToList();
 
         return hinosFiltrados;
@@ -51,14 +51,28 @@ public class HinoRepository : IHinoRepository
         _context.Hinos.Add(hinos);
         _context.SaveChanges();
     }
+
+    public void AddRange(List<Hino> hinos)
+    {
+        _context.Hinos.AddRange(hinos);
+        _context.SaveChanges();
+    }
+
     public void Update(Hino hinos)
     {
         _context.Hinos.Update(hinos);
         _context.SaveChanges();
     }
 
-    public object GetById(int id)
+
+
+ public Hino? GetById(int id)
+{
+    return _context.Hinos.Find(id);
+}
+
+    public Hino? GetByIdentificador(string identificador)
     {
-        throw new NotImplementedException();
+        return _context.Hinos.FirstOrDefault(h => h.Identificador.ToUpper().Replace("-", "") == identificador.ToUpper().Replace("-", "" ));
     }
 }
