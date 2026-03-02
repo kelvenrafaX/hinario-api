@@ -2,6 +2,7 @@ using MinhaPrimeiraApi.Models;
 using Microsoft.EntityFrameworkCore;
 using MinhaPrimeiraApi.Context;
 using MinhaPrimeiraApi.Interfaces;
+using MinhaPrimeiraApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ builder.Services.AddDbContext<HinarioApiContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IHinoRepository, HinoRepository>();
+
+builder.Services.AddHttpClient<ICampinaGrandeMineracaoService, CampinaGrandeMineracaoService>();
 
 builder.Services.AddOpenApi();
 

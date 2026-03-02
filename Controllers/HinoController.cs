@@ -8,10 +8,14 @@ using MinhaPrimeiraApi.Utils;
 public class HinoController : ControllerBase
 {
     private readonly IHinoRepository _hinoRepository;
+    private readonly ICampinaGrandeMineracaoService _mineracaoService;
 
-    public HinoController(IHinoRepository hinoRepository)
+    public HinoController(
+        IHinoRepository hinoRepository,
+        ICampinaGrandeMineracaoService mineracaoService)
     {
         _hinoRepository = hinoRepository;
+        _mineracaoService = mineracaoService;
     }
 
     [HttpGet]
@@ -46,7 +50,7 @@ public class HinoController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(texto))
         {
-            return Ok(new List<Hino>());
+            return Ok(new List<HinoResultadoPesquisaDto>());
         }
 
         var hinos = _hinoRepository.Pesquisar(texto);
@@ -57,7 +61,7 @@ public class HinoController : ControllerBase
 
         if (palavras.Length == 0)
         {
-            return Ok(new List<Hino>());
+            return Ok(new List<HinoResultadoPesquisaDto>());
         }
 
         // Ordenar hinos por prioridade
@@ -82,7 +86,17 @@ public class HinoController : ControllerBase
             return 3;
         }).ThenBy(hino => hino.Id).ToList();
 
-        return Ok(hinosOrdenados);
+        // Montar DTOs com o trecho (preview) para cada hino
+        var resultado = hinosOrdenados.Select(hino => new HinoResultadoPesquisaDto
+        {
+            Id = hino.Id,
+            Identificador = hino.Identificador,
+            Titulo = hino.Titulo ?? string.Empty,
+            Letra = hino.Letra,
+            Trecho = TrechoPesquisaHelper.BuildTrecho(hino, palavras)
+        }).ToList();
+
+        return Ok(resultado);
     }
 
     [HttpPost]
@@ -124,6 +138,46 @@ public class HinoController : ControllerBase
             return NotFound();
         }
         return Ok(hino);
+    }
+
+    /// <summary>
+    /// Minera um cântico (1-100) do site Igreja em Campina Grande e persiste se ainda não estiver cadastrado.
+    /// </summary>
+    /// <param name="numero">Número do cântico (1 a 100)</param>
+    /// <param name="cancellationToken">Token de cancelamento</param>
+    [HttpGet("minerar/canticos/{numero:int}")]
+    public async Task<IActionResult> MinerarCantico(
+        int numero,
+        CancellationToken cancellationToken = default)
+    {
+        if (numero < 1 || numero > 100)
+        {
+            return BadRequest(new { mensagem = "O número do cântico deve estar entre 1 e 100." });
+        }
+
+        var identificador = $"C-{numero}";
+        var existente = _hinoRepository.GetByIdentificador(identificador);
+        if (existente != null)
+        {
+            return Ok(new
+            {
+                mensagem = "Hino já cadastrado.",
+                hino = existente
+            });
+        }
+
+        var hino = await _mineracaoService.ExtrairCanticoAsync(numero, cancellationToken);
+
+        if (hino == null)
+        {
+            return StatusCode(502, new
+            {
+                mensagem = "Não foi possível extrair o hino do site (página indisponível ou formato inesperado)."
+            });
+        }
+
+        _hinoRepository.Add(hino);
+        return CreatedAtAction(nameof(GetHino), new { id = hino.Id }, hino);
     }
 
     [HttpPost("importar")]
