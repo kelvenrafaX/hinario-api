@@ -64,13 +64,23 @@ public class HinoController : ControllerBase
             return Ok(new List<HinoResultadoPesquisaDto>());
         }
 
+        // Termos para negrito no preview: primeiro a frase completa, depois cada palavra (sem duplicados),
+        // ordenados por tamanho desc para priorizar frases/termos maiores.
+        var termosNegrito = new List<string> { textoNormalizado };
+        termosNegrito.AddRange(palavras);
+        var termosNegritoArray = termosNegrito
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Distinct()
+            .OrderByDescending(t => t.Length)
+            .ToArray();
+
         // Ordenar hinos por prioridade
         var hinosOrdenados = hinos.OrderBy(hino =>
         {
             var letraNormalizada = TextNormalizer.Normalizar(hino.Letra);
             
             // 1º prioridade: palavras em sequência
-            var sequenciaCompleta = string.Join(" ", palavras);
+            var sequenciaCompleta = textoNormalizado;
             if (letraNormalizada.Contains(sequenciaCompleta))
             {
                 return 1;
@@ -93,7 +103,7 @@ public class HinoController : ControllerBase
             Identificador = hino.Identificador,
             Titulo = hino.Titulo ?? string.Empty,
             Letra = hino.Letra,
-            Trecho = TrechoPesquisaHelper.BuildTrecho(hino, palavras)
+            Trecho = TrechoPesquisaHelper.BuildTrecho(hino, termosNegritoArray)
         }).ToList();
 
         return Ok(resultado);
