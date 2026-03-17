@@ -71,15 +71,7 @@ namespace MinhaPrimeiraApi.Utils
             // Termo em outra linha: primeiras linhas + linha onde encontrou
             var primeiraComNegrito = ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
             var linhaEncontradaComNegrito = ColocarTermoEmNegrito(linhas[indiceLinhaEncontrada], linhas[indiceLinhaEncontrada], palavrasNormalizadas);
-            // +1 linha após a linha encontrada (se existir)
-            if (indiceLinhaEncontrada + 1 < linhas.Length)
-            {
-                linhaEncontradaComNegrito += "\n" + ColocarTermoEmNegrito(
-                    linhas[indiceLinhaEncontrada + 1],
-                    linhas[indiceLinhaEncontrada + 1],
-                    palavrasNormalizadas);
-            }
-            return primeiraComNegrito + "\n...\n" + linhaEncontradaComNegrito;
+            return primeiraComNegrito + "[...]\n" + linhaEncontradaComNegrito;
         }
 
         /// <summary>
