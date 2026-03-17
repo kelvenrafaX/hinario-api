@@ -27,8 +27,10 @@ namespace MinhaPrimeiraApi.Utils
             if (linhas.Length == 0)
                 return string.Empty;
 
-            // Primeira linha sempre entra
-            var primeiraLinha = linhas[0];
+            // Primeira e segunda linha sempre entra
+            var primeirasLinhas = linhas[0];
+            if (linhas.Length > 1)
+                primeirasLinhas += '\n' + linhas[1];
 
             // Descobrir em qual linha (índice) alguma palavra foi encontrada
             int indiceLinhaEncontrada = -1;
@@ -52,7 +54,7 @@ namespace MinhaPrimeiraApi.Utils
 
             // Se não encontrou em nenhuma linha (não deveria acontecer se veio do pesquisar), retorna só a primeira
             if (indiceLinhaEncontrada < 0 || string.IsNullOrEmpty(palavraEncontrada))
-                return ColocarTermoEmNegrito(primeiraLinha, primeiraLinha, palavrasNormalizadas);
+                return ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
 
             if (indiceLinhaEncontrada == 0)
             {
@@ -66,10 +68,14 @@ namespace MinhaPrimeiraApi.Utils
                 return string.Join("\n", resultado);
             }
 
-            // Termo em outra linha: primeira linha + linha onde encontrou
-            var primeiraComNegrito = ColocarTermoEmNegrito(primeiraLinha, primeiraLinha, palavrasNormalizadas);
+            // Termo em outra linha: primeiras linhas + linha onde encontrou
+            var primeiraComNegrito = ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
             var linhaEncontradaComNegrito = ColocarTermoEmNegrito(linhas[indiceLinhaEncontrada], linhas[indiceLinhaEncontrada], palavrasNormalizadas);
-            return primeiraComNegrito + "\n" + linhaEncontradaComNegrito;
+            if (linhas.Length > indiceLinhaEncontrada)
+            {
+                linhaEncontradaComNegrito += "\n" + ColocarTermoEmNegrito(linhas[indiceLinhaEncontrada+1], linhas[indiceLinhaEncontrada+1], palavrasNormalizadas);
+            }
+            return primeiraComNegrito + "..." + " \n " + "..." + linhaEncontradaComNegrito;
         }
 
         /// <summary>
