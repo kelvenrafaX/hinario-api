@@ -5,7 +5,7 @@ namespace MinhaPrimeiraApi.Models
     public class HinoImportDto
     {
         [JsonPropertyName("id")]
-        public long Id { get; set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("title")]
         public string Title { get; set; } = string.Empty;
