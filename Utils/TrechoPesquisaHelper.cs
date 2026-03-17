@@ -5,17 +5,18 @@ namespace MinhaPrimeiraApi.Utils
 {
     /// <summary>
     /// Monta o trecho (preview) para resultado de pesquisa: primeira linha + linha onde o termo foi encontrado,
-    /// com o termo em negrito (markdown **termo**).
+    /// com o termo em negrito (html <b>termo</b>).
     /// </summary>
     public static class TrechoPesquisaHelper
     {
-        private const string NegritoMarcador = "**";
+        private const string NegritoMarcadorInicial = "<b>";
+        private const string NegritoMarcadorFinal = "</b>";
 
         /// <summary>
         /// Gera o trecho para exibição na pesquisa.
         /// Regras: no máximo primeira linha + linha onde a palavra foi encontrada;
         /// se a palavra estiver na primeira linha, retorna as 2 primeiras linhas;
-        /// a palavra encontrada é retornada em negrito (**palavra**).
+        /// a palavra encontrada é retornada em negrito (<b>palavra</b>).
         /// </summary>
         public static string BuildTrecho(Hino hino, string[] palavrasNormalizadas)
         {
@@ -120,7 +121,7 @@ namespace MinhaPrimeiraApi.Utils
 
             var termoOriginal = linhaOriginal.Substring(origStart, origEnd - origStart);
             return linhaOriginal.Substring(0, origStart)
-                 + NegritoMarcador + termoOriginal + NegritoMarcador
+                 + NegritoMarcadorInicial + termoOriginal + NegritoMarcadorFinal
                  + linhaOriginal.Substring(origEnd);
         }
     }
