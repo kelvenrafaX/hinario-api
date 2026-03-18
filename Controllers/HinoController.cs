@@ -74,27 +74,29 @@ public class HinoController : ControllerBase
             .OrderByDescending(t => t.Length)
             .ToArray();
 
-        // Ordenar hinos por prioridade
-        var hinosOrdenados = hinos.OrderBy(hino =>
-        {
-            var letraNormalizada = TextNormalizer.Normalizar(hino.Letra);
-            
-            // 1º prioridade: palavras em sequência
-            var sequenciaCompleta = textoNormalizado;
-            if (letraNormalizada.Contains(sequenciaCompleta))
+        var hinosOrdenados = hinos
+            .Select(h =>
             {
-                return 1;
-            }
+                var letraNormalizada = TextNormalizer.Normalizar(h.Letra ?? "");
+                var temFraseExata = letraNormalizada.Contains(textoNormalizado);
+                var totalPalavrasEncontradas = palavras.Count(p => letraNormalizada.Contains(p));
+                var temTodasPalavras = totalPalavrasEncontradas == palavras.Length;
 
-            // 2º prioridade: todas as palavras presentes (mas não necessariamente em sequência)
-            if (palavras.All(palavra => letraNormalizada.Contains(palavra)))
-            {
-                return 2;
-            }
+                return new
+                {
+                    Hino = h,
+                    TemFraseExata = temFraseExata,
+                    TemTodasPalavras = temTodasPalavras,
+                    TotalPalavrasEncontradas = totalPalavrasEncontradas
+                };
+            })
+            .OrderByDescending(x => x.TemFraseExata)
+            .ThenByDescending(x => x.TemTodasPalavras)
+            .ThenByDescending(x => x.TotalPalavrasEncontradas)
+            .Select(x => x.Hino);
 
-            // 3º prioridade: apenas algumas palavras presentes
-            return 3;
-        }).ThenBy(hino => hino.Id).ToList();
+        int pagina = 1;
+        int tamanhoPagina = 10;
 
         // Montar DTOs com o trecho (preview) para cada hino
         var resultado = hinosOrdenados.Select(hino => new HinoResultadoPesquisaDto
@@ -104,7 +106,10 @@ public class HinoController : ControllerBase
             Titulo = hino.Titulo ?? string.Empty,
             Letra = hino.Letra,
             Trecho = TrechoPesquisaHelper.BuildTrecho(hino, termosNegritoArray)
-        }).ToList();
+        })
+        .Skip((pagina - 1) * tamanhoPagina)
+        .Take(tamanhoPagina)
+        .ToList();
 
         return Ok(resultado);
     }

@@ -35,35 +35,20 @@ public class HinoRepository : IHinoRepository
             return new List<Hino>();
         }
 
-        // Filtro aproximado no banco (reduz candidatos). Depois o controller refina/ordena em memória.
-        // Observação: ILIKE não remove acentos. Ainda assim ajuda muito a reduzir dataset quando a tabela crescer.
-        var query = _context.Hinos.AsNoTracking().AsQueryable();
+        // Monta query no formato "palavra1 | palavra2 | palavra3" (OR entre termos)
+        var tsQuery = string.Join(" | ", palavras);
 
-        // OR entre palavras: traz candidatos que tenham pelo menos um termo
-        Expression<Func<Hino, bool>> predicate = h => false;
-        var adicionouAlgum = false;
-        foreach (var palavra in palavras)
+        return _context.Hinos
+        .AsNoTracking()
+        .Where(h => h.LetraIdx.Matches(EF.Functions.ToTsQuery("portuguese", tsQuery)))
+        .Select(h => new Hino
         {
-            var p = palavra; // evitar closure em loop
-            if (string.IsNullOrWhiteSpace(p)) continue;
-            predicate = Or(predicate, h => EF.Functions.ILike(h.Letra, $"%{p}%"));
-            adicionouAlgum = true;
-        }
-
-        // Se por algum motivo ficou vazio, não faz query ampla
-        if (!adicionouAlgum)
-            return new List<Hino>();
-
-        return query
-            .Where(predicate)
-            .Select(h => new Hino
-            {
-                Id = h.Id,
-                Identificador = h.Identificador,
-                Titulo = h.Titulo,
-                Letra = h.Letra
-            })
-            .ToList();
+            Id = h.Id,
+            Identificador = h.Identificador,
+            Titulo = h.Titulo,
+            Letra = h.Letra
+        })
+        .ToList();
     }
 
     private static Expression<Func<T, bool>> Or<T>(Expression<Func<T, bool>> left, Expression<Func<T, bool>> right)

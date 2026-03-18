@@ -26,6 +26,17 @@ namespace MinhaPrimeiraApi.Context
                 .HasIndex(h => h.Identificador)
                 .IsUnique()
                 .HasFilter("\"identificador\" IS NOT NULL");
+
+            modelBuilder.Entity<Hino>(entity =>
+            {
+                entity.Property(h => h.LetraIdx)
+                    .HasColumnName("letra_idx")
+                    .HasColumnType("tsvector")
+                    .ValueGeneratedOnAddOrUpdate(); // coluna gerada pelo banco
+
+                entity.HasIndex(h => h.LetraIdx)
+                    .HasMethod("GIN");
+            });
         }
     }
 }

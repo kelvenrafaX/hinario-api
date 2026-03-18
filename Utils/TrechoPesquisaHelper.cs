@@ -27,51 +27,54 @@ namespace MinhaPrimeiraApi.Utils
             if (linhas.Length == 0)
                 return string.Empty;
 
-            // Primeira e segunda linha sempre entra
             var primeirasLinhas = linhas[0];
             if (linhas.Length > 1)
                 primeirasLinhas += '\n' + linhas[1];
 
-            // Descobrir em qual linha (índice) alguma palavra foi encontrada
-            int indiceLinhaEncontrada = -1;
-            string? palavraEncontrada = null;
+            var frasePesquisada = string.Join(" ", palavrasNormalizadas);
 
-            for (int i = 0; i < linhas.Length; i++)
-            {
-                var linhaNorm = TextNormalizer.Normalizar(linhas[i]);
-                foreach (var palavra in palavrasNormalizadas)
+            // Pontuar cada linha seguindo a mesma lógica de prioridade
+            var melhorLinha = linhas
+                .Select((linha, indice) =>
                 {
-                    if (string.IsNullOrEmpty(palavra)) continue;
-                    if (linhaNorm.Contains(palavra))
-                    {
-                        indiceLinhaEncontrada = i;
-                        palavraEncontrada = palavra;
-                        break;
-                    }
-                }
-                if (indiceLinhaEncontrada >= 0) break;
-            }
+                    var linhaNorm = TextNormalizer.Normalizar(linha);
+                    var temFraseExata = linhaNorm.Contains(frasePesquisada);
+                    var totalPalavrasEncontradas = palavrasNormalizadas.Count(p => !string.IsNullOrEmpty(p) && linhaNorm.Contains(p));
 
-            // Se não encontrou em nenhuma linha (não deveria acontecer se veio do pesquisar), retorna só a primeira
-            if (indiceLinhaEncontrada < 0 || string.IsNullOrEmpty(palavraEncontrada))
+                    return new
+                    {
+                        Indice = indice,
+                        Linha = linha,
+                        TemFraseExata = temFraseExata,
+                        TemTodasPalavras = totalPalavrasEncontradas == palavrasNormalizadas.Length,
+                        TotalPalavrasEncontradas = totalPalavrasEncontradas
+                    };
+                })
+                .Where(x => x.TotalPalavrasEncontradas > 0) // só linhas com ao menos uma palavra
+                .OrderByDescending(x => x.TemFraseExata)
+                .ThenByDescending(x => x.TemTodasPalavras)
+                .ThenByDescending(x => x.TotalPalavrasEncontradas)
+                .FirstOrDefault();
+
+            // Nenhuma linha encontrada
+            if (melhorLinha == null)
                 return ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
 
-            if (indiceLinhaEncontrada == 0)
+            // Melhor linha é a primeira ou segunda: retorna as 2 primeiras
+            if (melhorLinha.Indice <= 1)
             {
-                // Termo na primeira linha: retornar as 2 primeiras linhas (se houver)
                 var linhasPreview = linhas.Length >= 2
                     ? new[] { linhas[0], linhas[1] }
                     : new[] { linhas[0] };
-                var resultado = new List<string>();
-                foreach (var linha in linhasPreview)
-                    resultado.Add(ColocarTermoEmNegrito(linha, linha, palavrasNormalizadas));
-                return string.Join("\n", resultado);
+
+                return string.Join("\n", linhasPreview.Select(l =>
+                    ColocarTermoEmNegrito(l, l, palavrasNormalizadas)));
             }
 
-            // Termo em outra linha: primeiras linhas + linha onde encontrou
+            // Melhor linha está em outro trecho: primeiras linhas + melhor linha
             var primeiraComNegrito = ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
-            var linhaEncontradaComNegrito = ColocarTermoEmNegrito(linhas[indiceLinhaEncontrada], linhas[indiceLinhaEncontrada], palavrasNormalizadas);
-            return primeiraComNegrito + "[...]\n" + linhaEncontradaComNegrito;
+            var melhorLinhaComNegrito = ColocarTermoEmNegrito(melhorLinha.Linha, melhorLinha.Linha, palavrasNormalizadas);
+            return primeiraComNegrito + "\n[...]\n" + melhorLinhaComNegrito;
         }
 
         /// <summary>
