@@ -74,7 +74,7 @@ namespace MinhaPrimeiraApi.Utils
             // Melhor linha está em outro trecho: primeiras linhas + melhor linha
             var primeiraComNegrito = ColocarTermoEmNegrito(primeirasLinhas, primeirasLinhas, palavrasNormalizadas);
             var melhorLinhaComNegrito = ColocarTermoEmNegrito(melhorLinha.Linha, melhorLinha.Linha, palavrasNormalizadas);
-            return primeiraComNegrito + "\n[...]\n" + melhorLinhaComNegrito;
+            return primeiraComNegrito + "[...]\n" + melhorLinhaComNegrito;
         }
 
         /// <summary>
