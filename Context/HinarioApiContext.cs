@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MinhaPrimeiraApi.Models;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MinhaPrimeiraApi.Context
 {
@@ -15,6 +16,11 @@ namespace MinhaPrimeiraApi.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Hino>()
+                .Property(h => h.Id)
+                .ValueGeneratedOnAdd()
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity<Hino>()
                 .HasIndex(h => h.Identificador)
