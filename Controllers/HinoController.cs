@@ -128,13 +128,8 @@ public class HinoController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateHino(int id, [FromBody] Hino hino)
+    public IActionResult UpdateHino(int id, [FromBody] HinoDto hino)
     {
-        if (id != hino.Id)
-        {
-            return BadRequest("id do hino não corresponde ao id da rota");
-        }
-
         var hinoExistente = _hinoRepository.GetById(id);
 
         if (hinoExistente == null)
