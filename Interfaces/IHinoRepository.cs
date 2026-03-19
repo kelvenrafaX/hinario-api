@@ -11,5 +11,6 @@ namespace MinhaPrimeiraApi.Interfaces
         void Update(Hino hinos);
         Hino? GetById(int id);
         Hino? GetByIdentificador(string identificador);
+        Hino? ObterProximoPorTipoENumeroAsync(string tipo, int numero);
     }
 }
