@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 public class HinoRepository : IHinoRepository
 {
     private readonly HinarioApiContext _context;
+    private readonly List<string> ordemTipos = new() { "H", "C", "S", "HC", "L" };
 
     public HinoRepository(HinarioApiContext context)
     {
@@ -17,6 +18,37 @@ public class HinoRepository : IHinoRepository
     public List<Hino> GetAll()
     {
         return _context.Hinos.ToList();
+    }
+
+    public Hino? ObterProximoPorTipoENumeroAsync(string tipo, int numero)
+    {
+        // 1. Tenta próximo hino do mesmo tipo
+        var proximo = _context.Hinos
+            .Where(h => h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable() // <- traz para memória aqui
+            .Where(h => int.Parse(h.Identificador.Replace(tipo + "-", string.Empty)) > numero)
+            .OrderBy(h => int.Parse(h.Identificador.Replace(tipo + "-", string.Empty)))
+            .FirstOrDefault();
+
+        if (proximo != null)
+            return proximo;
+
+        // 2. Tenta próximas siglas
+        var index = ordemTipos.IndexOf(tipo);
+        for (int i = index + 1; i < ordemTipos.Count; i++)
+        {
+            var tipoAtual = ordemTipos[i];
+            var primeiro = _context.Hinos
+                .Where(h => h.Identificador.StartsWith(tipoAtual + "-"))
+                .AsEnumerable() // <- aqui também
+                .OrderBy(h => int.Parse(h.Identificador.Replace(tipoAtual + "-", string.Empty)))
+                .FirstOrDefault();
+
+            if (primeiro != null)
+                return primeiro;
+        }
+
+        return null;
     }
 
     public List<Hino> Pesquisar(string texto)

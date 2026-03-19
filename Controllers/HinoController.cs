@@ -283,4 +283,75 @@ public class HinoController : ControllerBase
             });
         }
     }
+
+    [HttpGet("{tipo}/{numero}/proximo")]
+    public async Task<IActionResult> GetProximo(string tipo, int numero)
+    {
+        var proximo = _hinoRepository.ObterProximoPorTipoENumeroAsync(tipo, numero);
+
+        if (proximo != null)
+            return Ok(proximo);
+
+        return NotFound();
+    }
+
+    // 🔹 ANTERIOR
+    // [HttpGet("{tipo}/{numero}/anterior")]
+    // public async Task<IActionResult> GetAnterior(string tipo, int numero)
+    // {
+    //     // 1. tenta anterior da mesma sigla
+    //     var anterior = await _context.Hinos
+    //         .Where(h => h.Tipo == tipo && h.Numero < numero)
+    //         .OrderByDescending(h => h.Numero)
+    //         .FirstOrDefaultAsync();
+
+    //     if (anterior != null)
+    //         return Ok(anterior);
+
+    //     // 2. tenta siglas anteriores
+    //     var index = ordemTipos.IndexOf(tipo);
+
+    //     for (int i = index - 1; i >= 0; i--)
+    //     {
+    //         var ultimo = await _context.Hinos
+    //             .Where(h => h.Tipo == ordemTipos[i])
+    //             .OrderByDescending(h => h.Numero)
+    //             .FirstOrDefaultAsync();
+
+    //         if (ultimo != null)
+    //             return Ok(ultimo);
+    //     }
+
+    //     return NotFound();
+    // }
+
+    // // 🔹 PRIMEIRO de um tipo
+    // [HttpGet("{tipo}/primeiro")]
+    // public async Task<IActionResult> GetPrimeiro(string tipo)
+    // {
+    //     var hino = await _context.Hinos
+    //         .Where(h => h.Tipo == tipo)
+    //         .OrderBy(h => h.Numero)
+    //         .FirstOrDefaultAsync();
+
+    //     if (hino == null)
+    //         return NotFound();
+
+    //     return Ok(hino);
+    // }
+
+    // // 🔹 ULTIMO de um tipo
+    // [HttpGet("{tipo}/ultimo")]
+    // public async Task<IActionResult> GetUltimo(string tipo)
+    // {
+    //     var hino = await _context.Hinos
+    //         .Where(h => h.Tipo == tipo)
+    //         .OrderByDescending(h => h.Numero)
+    //         .FirstOrDefaultAsync();
+
+    //     if (hino == null)
+    //         return NotFound();
+
+    //     return Ok(hino);
+    // }
 }
