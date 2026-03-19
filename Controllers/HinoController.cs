@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MinhaPrimeiraApi.Interfaces;
 using MinhaPrimeiraApi.Models;
+using MinhaPrimeiraApi.Models.Dtos;
 using MinhaPrimeiraApi.Utils;
 
 [ApiController]
@@ -115,11 +116,15 @@ public class HinoController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateHino([FromBody] Hino hino)
+    public IActionResult CreateHino([FromBody] HinoDto hino)
     {
-        Console.WriteLine(hino.Id);
-        _hinoRepository.Add(hino);
-        return CreatedAtAction(nameof(CreateHino), new { id = hino.Id }, hino);
+        _hinoRepository.Add(new Hino
+        {
+            Identificador = hino.Identificador,
+            Letra = hino.Letra ?? string.Empty,
+            Titulo = hino.Titulo ?? string.Empty
+        });
+        return CreatedAtAction(nameof(CreateHino), new { identificador = hino.Identificador }, hino);
     }
 
     [HttpPut("{id}")]
