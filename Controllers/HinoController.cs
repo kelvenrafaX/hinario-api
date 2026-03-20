@@ -298,7 +298,7 @@ public class HinoController : ControllerBase
     [HttpGet("{tipo}/{numero}/anterior")]
     public async Task<IActionResult> GetAnterior(string tipo, int numero)
     {
-        var anterior = _hinoRepository.ObterProximoPorTipoENumeroAsync(tipo, numero);
+        var anterior = _hinoRepository.ObterAnteriorPorTipoENumeroAsync(tipo, numero);
 
         if (anterior != null)
             return Ok(anterior);

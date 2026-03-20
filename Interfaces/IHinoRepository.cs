@@ -12,5 +12,6 @@ namespace MinhaPrimeiraApi.Interfaces
         Hino? GetById(int id);
         Hino? GetByIdentificador(string identificador);
         Hino? ObterProximoPorTipoENumeroAsync(string tipo, int numero);
+        Hino? ObterAnteriorPorTipoENumeroAsync(string tipo, int numero);
     }
 }
