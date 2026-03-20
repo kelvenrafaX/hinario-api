@@ -51,6 +51,37 @@ public class HinoRepository : IHinoRepository
         return null;
     }
 
+    public Hino? ObterAnteriorPorTipoENumeroAsync(string tipo, int numero)
+    {
+        // 1. Tenta o hino anterior do mesmo tipo
+        var anterior = _context.Hinos
+            .Where(h => h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable() // <- traz para memória aqui
+            .Where(h => int.Parse(h.Identificador.Replace(tipo + "-", string.Empty)) < numero)
+            .OrderByDescending(h => int.Parse(h.Identificador.Replace(tipo + "-", string.Empty)))
+            .FirstOrDefault();
+
+        if (anterior != null)
+            return anterior;
+
+        // 2. Tenta siglas anteriores
+        var index = ordemTipos.IndexOf(tipo);
+        for (int i = index - 1; i >= 0; i--)
+        {
+            var tipoAtual = ordemTipos[i];
+            var ultimo = _context.Hinos
+                .Where(h => h.Identificador.StartsWith(tipoAtual + "-"))
+                .AsEnumerable() // <- aqui também
+                .OrderByDescending(h => int.Parse(h.Identificador.Replace(tipoAtual + "-", string.Empty)))
+                .FirstOrDefault();
+
+            if (ultimo != null)
+                return ultimo;
+        }
+
+        return null;
+    }
+
     public List<Hino> Pesquisar(string texto)
     {
         if (string.IsNullOrWhiteSpace(texto))
