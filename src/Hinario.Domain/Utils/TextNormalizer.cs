@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace Hinario.Utils
+namespace Hinario.Domain.Utils
 {
     public static class TextNormalizer
     {

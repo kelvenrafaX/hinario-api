@@ -13,12 +13,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    
-    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Hinario.Application\Hinario.Application.csproj" />
+    <ProjectReference Include="..\Hinario.Infra\Hinario.Infra.csproj" />
   </ItemGroup>
 
 </Project>

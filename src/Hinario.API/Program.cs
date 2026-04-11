@@ -1,7 +1,8 @@
-using Hinario.Models;
 using Microsoft.EntityFrameworkCore;
-using Hinario.Context;
-using Hinario.Interfaces;
+using Hinario.Infra.Context;
+using Hinario.Infra.Repositories;
+using Hinario.Domain.Interfaces;
+using Hinario.Application.Services;
 using Hinario.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,9 @@ builder.Services.AddDbContext<HinarioApiContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 builder.Services.AddScoped<IHinoRepository, HinoRepository>();
+builder.Services.AddScoped<IHinoService, HinoService>();
+builder.Services.AddScoped<IRepertorioRepository, RepertorioRepository>();
+builder.Services.AddScoped<IRepertorioService, RepertorioService>();
 
 builder.Services.AddHttpClient<ICampinaGrandeMineracaoService, CampinaGrandeMineracaoService>();
 

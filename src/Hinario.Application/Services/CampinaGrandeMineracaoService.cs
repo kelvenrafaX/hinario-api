@@ -1,7 +1,7 @@
 using System.Text;
 using HtmlAgilityPack;
-using Hinario.Interfaces;
-using Hinario.Models;
+using Hinario.Domain.Interfaces;
+using Hinario.Domain.Models;
 
 namespace Hinario.Services
 {

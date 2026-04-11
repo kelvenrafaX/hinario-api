@@ -1,7 +1,7 @@
 using System.Text;
-using Hinario.Models;
+using Hinario.Domain.Models;
 
-namespace Hinario.Utils
+namespace Hinario.Domain.Utils
 {
     /// <summary>
     /// Monta o trecho (preview) para resultado de pesquisa: primeira linha + linha onde o termo foi encontrado,

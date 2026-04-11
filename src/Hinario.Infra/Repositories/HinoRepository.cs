@@ -1,11 +1,9 @@
 using Hinario.Infra.Context;
 using Hinario.Domain.Interfaces;
 using Hinario.Domain.Models;
-using Hinario.Utils;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 
-namespace Hinario.Infra.Reporitories;
+namespace Hinario.Infra.Repositories;
 
 public class HinoRepository : IHinoRepository
 {
@@ -16,69 +14,67 @@ public class HinoRepository : IHinoRepository
         _context = context;
     }
 
-    public List<Hino> GetAll()
+    public List<Hino> GetAll() => _context.Hinos.ToList();
+
+    public Hino? GetById(int id) => _context.Hinos.Find(id);
+
+    public Hino? GetByIdentificador(string identificador)
     {
-        return _context.Hinos.ToList();
+        var idNormalizado = identificador.ToUpper().Replace("-", "");
+        return _context.Hinos.FirstOrDefault(h =>
+            h.Identificador != null &&
+            h.Identificador.ToUpper().Replace("-", "") == idNormalizado);
     }
 
-    public List<Hino> Pesquisar(string texto)
+    public List<Hino> PesquisarPorTsQuery(string tsQuery)
     {
-        if (string.IsNullOrWhiteSpace(texto))
-        {
-            return new List<Hino>();
-        }
-
-        // Normalizar o texto de busca (remover acentos e converter para minúsculas)
-        var textoNormalizado = TextNormalizer.Normalizar(texto);
-        var palavras = textoNormalizado.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        if (palavras.Length == 0)
-        {
-            return new List<Hino>();
-        }
-
-        // Monta query no formato "palavra1 | palavra2 | palavra3" (OR entre termos)
-        var tsQuery = string.Join(" | ", palavras);
-
         return _context.Hinos
-        .AsNoTracking()
-        .Where(h => h.LetraIdx.Matches(EF.Functions.ToTsQuery("portuguese", tsQuery)))
-        .Select(h => new Hino
-        {
-            Id = h.Id,
-            Identificador = h.Identificador,
-            Titulo = h.Titulo,
-            Letra = h.Letra
-        })
-        .ToList();
+            .AsNoTracking()
+            .Where(h => h.LetraIdx.Matches(EF.Functions.ToTsQuery("portuguese", tsQuery)))
+            .ToList();
     }
 
-    private static Expression<Func<T, bool>> Or<T>(Expression<Func<T, bool>> left, Expression<Func<T, bool>> right)
+    public Hino? ObterPrimeiroPorTipo(string tipo)
     {
-        var param = Expression.Parameter(typeof(T), "x");
-        var leftBody = new ReplaceParameterVisitor(left.Parameters[0], param).Visit(left.Body)!;
-        var rightBody = new ReplaceParameterVisitor(right.Parameters[0], param).Visit(right.Body)!;
-        return Expression.Lambda<Func<T, bool>>(Expression.OrElse(leftBody, rightBody), param);
+        return _context.Hinos
+            .Where(h => h.Identificador != null && h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable()
+            .OrderBy(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0"))
+            .FirstOrDefault();
     }
 
-    private sealed class ReplaceParameterVisitor : ExpressionVisitor
+    public Hino? ObterUltimoPorTipo(string tipo)
     {
-        private readonly ParameterExpression _from;
-        private readonly ParameterExpression _to;
-
-        public ReplaceParameterVisitor(ParameterExpression from, ParameterExpression to)
-        {
-            _from = from;
-            _to = to;
-        }
-
-        protected override Expression VisitParameter(ParameterExpression node)
-            => node == _from ? _to : base.VisitParameter(node);
+        return _context.Hinos
+            .Where(h => h.Identificador != null && h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable()
+            .OrderByDescending(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0"))
+            .FirstOrDefault();
     }
 
-    public void Add(Hino hinos)
+    public Hino? ObterProximoNoTipo(string tipo, int numero)
     {
-        _context.Hinos.Add(hinos);
+        return _context.Hinos
+            .Where(h => h.Identificador != null && h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable()
+            .Where(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0") > numero)
+            .OrderBy(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0"))
+            .FirstOrDefault();
+    }
+
+    public Hino? ObterAnteriorNoTipo(string tipo, int numero)
+    {
+        return _context.Hinos
+            .Where(h => h.Identificador != null && h.Identificador.StartsWith(tipo + "-"))
+            .AsEnumerable()
+            .Where(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0") < numero)
+            .OrderByDescending(h => int.Parse(h.Identificador?.Replace(tipo + "-", string.Empty) ?? "0"))
+            .FirstOrDefault();
+    }
+
+    public void Add(Hino hino)
+    {
+        _context.Hinos.Add(hino);
         _context.SaveChanges();
     }
 
@@ -88,21 +84,9 @@ public class HinoRepository : IHinoRepository
         _context.SaveChanges();
     }
 
-    public void Update(Hino hinos)
+    public void Update(Hino hino)
     {
-        _context.Hinos.Update(hinos);
+        _context.Hinos.Update(hino);
         _context.SaveChanges();
-    }
-
-
-
- public Hino? GetById(int id)
-{
-    return _context.Hinos.Find(id);
-}
-
-    public Hino? GetByIdentificador(string identificador)
-    {
-        return _context.Hinos.FirstOrDefault(h => h.Identificador.ToUpper().Replace("-", "") == identificador.ToUpper().Replace("-", "" ));
     }
 }

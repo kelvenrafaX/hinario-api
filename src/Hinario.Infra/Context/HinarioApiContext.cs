@@ -12,6 +12,8 @@ namespace Hinario.Infra.Context
         }
 
         public DbSet<Hino> Hinos { get; set; } = null!;
+        public DbSet<Repertorio> Repertorios { get; set; } = null!;
+        public DbSet<RepertorioItem> RepertorioItens { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +38,22 @@ namespace Hinario.Infra.Context
 
                 entity.HasIndex(h => h.LetraIdx)
                     .HasMethod("GIN");
+            });
+
+            modelBuilder.Entity<RepertorioItem>(entity =>
+            {
+                entity.HasOne(i => i.Repertorio)
+                    .WithMany(r => r.Itens)
+                    .HasForeignKey(i => i.RepertorioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(i => i.Hino)
+                    .WithMany()
+                    .HasForeignKey(i => i.HinoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(i => new { i.RepertorioId, i.Ordem })
+                    .IsUnique();
             });
         }
     }

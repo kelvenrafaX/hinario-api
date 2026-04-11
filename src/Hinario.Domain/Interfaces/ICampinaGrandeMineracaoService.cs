@@ -1,4 +1,4 @@
-using Hinario.Models;
+using Hinario.Domain.Models;
 
 namespace Hinario.Domain.Interfaces
 {

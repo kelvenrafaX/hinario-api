@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Hinario.Context;
+using Hinario.Infra.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Hinario.Migrations
+namespace Hinario.Infra.Migrations
 {
     [DbContext(typeof(HinarioApiContext))]
     [Migration("20251230173937_AdicionarIdentificadorHino")]
