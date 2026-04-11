@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Hinario.Domain.Models
 {
@@ -20,6 +21,7 @@ namespace Hinario.Domain.Models
         [Column("ordem")]
         public int Ordem { get; set; }
 
+        [JsonIgnore]
         public Repertorio Repertorio { get; set; } = null!;
         public Hino Hino { get; set; } = null!;
     }
