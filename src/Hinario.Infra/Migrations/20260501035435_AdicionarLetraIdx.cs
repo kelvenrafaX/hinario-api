@@ -22,9 +22,20 @@ namespace Hinario.Infra.Migrations
                 END$$;
             ");
 
-            migrationBuilder.Sql("UPDATE hinos SET letra_idx = to_tsvector('portuguese', coalesce(letra, '')) WHERE letra_idx IS NULL");
-
-            migrationBuilder.Sql("ALTER TABLE hinos ALTER COLUMN letra_idx SET NOT NULL");
+            // attgenerated = 's' for stored generated columns; skip manual UPDATE if so
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_attribute a
+                        JOIN pg_class c ON c.oid = a.attrelid
+                        WHERE c.relname = 'hinos' AND a.attname = 'letra_idx' AND a.attgenerated = 's'
+                    ) THEN
+                        UPDATE hinos SET letra_idx = to_tsvector('portuguese', coalesce(letra, '')) WHERE letra_idx IS NULL;
+                        ALTER TABLE hinos ALTER COLUMN letra_idx SET NOT NULL;
+                    END IF;
+                END$$;
+            ");
 
             migrationBuilder.Sql(@"
                 DO $$
