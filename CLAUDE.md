@@ -1,68 +1,68 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este arquivo fornece orientações ao Claude Code (claude.ai/code) ao trabalhar com o código deste repositório.
 
-## Commands
+## Comandos
 
 ```bash
-# Build the solution
+# Compilar a solução
 dotnet build Hinario.sln
 
-# Run the API (HTTP on port 5252)
+# Executar a API (HTTP na porta 5252)
 dotnet run --project src/Hinario.API --launch-profile http
 
-# Run the API (HTTPS on ports 7243/5252)
+# Executar a API (HTTPS nas portas 7243/5252)
 dotnet run --project src/Hinario.API --launch-profile https
 
-# Apply EF Core migrations
+# Aplicar migrations do EF Core
 dotnet ef database update --project src/Hinario.Infra --startup-project src/Hinario.API
 
-# Add a new migration
-dotnet ef migrations add <MigrationName> --project src/Hinario.Infra --startup-project src/Hinario.API
+# Adicionar uma nova migration
+dotnet ef migrations add <NomeDaMigration> --project src/Hinario.Infra --startup-project src/Hinario.API
 ```
 
-There are no test projects in this solution.
+Não há projetos de teste nesta solução.
 
-## Architecture
+## Arquitetura
 
-Clean Architecture with four layers. Dependency flow: `API → Application → Domain ← Infra`.
+Clean Architecture com quatro camadas. Fluxo de dependência: `API → Application → Domain ← Infra`.
 
-- **Hinario.Domain** — entities (`Hino`), DTOs, interfaces, and utilities. No external dependencies. All contracts (IHinoService, IHinoRepository, ICampinaGrandeMineracaoService) live here.
-- **Hinario.Application** — implements domain service interfaces. Contains `HinoService` (core business logic) and `CampinaGrandeMineracaoService` (web scraper using HtmlAgilityPack).
-- **Hinario.Infra** — EF Core 10 with Npgsql (PostgreSQL). `HinarioApiContext` and `HinoRepository`. Contains migrations.
-- **Hinario.API** — ASP.NET Core 10 Web API. Single controller: `HinoController`. DI wiring and CORS configured in `Program.cs`.
+- **Hinario.Domain** — entidades (`Hino`), DTOs, interfaces e utilitários. Sem dependências externas. Todos os contratos (IHinoService, IHinoRepository, ICampinaGrandeMineracaoService) residem aqui.
+- **Hinario.Application** — implementa as interfaces de serviço do domínio. Contém `HinoService` (lógica de negócio principal) e `CampinaGrandeMineracaoService` (web scraper usando HtmlAgilityPack).
+- **Hinario.Infra** — EF Core 10 com Npgsql (PostgreSQL). `HinarioApiContext` e `HinoRepository`. Contém as migrations.
+- **Hinario.API** — ASP.NET Core 10 Web API. Controller único: `HinoController`. Configuração de DI e CORS em `Program.cs`.
 
-## Domain Model
+## Modelo de Domínio
 
-`Hino` (table: `hinos`): the single core entity.
-- `Identificador` — unique string key like `"C-1"` or `"H-10"` (nullable). Prefix defines hymn type: H=Hinos, C=Cânticos.
-- `LetraIdx` — PostgreSQL `tsvector` column auto-generated server-side for full-text search with Portuguese language.
+`Hino` (tabela: `hinos`): entidade central única.
+- `Identificador` — chave string única como `"C-1"` ou `"H-10"` (anulável). O prefixo define o tipo do hino: H=Hinos, C=Cânticos.
+- `LetraIdx` — coluna `tsvector` do PostgreSQL gerada automaticamente pelo servidor para busca de texto completo no idioma português.
 
-## Search
+## Pesquisa
 
-Full-text search is implemented at the PostgreSQL level via tsvector + GIN index on `LetraIdx`. Search results are ranked by: exact phrase match > all words present > word count. The `TrechoPesquisaHelper` (in `Hinario.Domain/Utils/`) generates preview excerpts with matched terms wrapped in `<b>` tags.
+A busca de texto completo é implementada no nível do PostgreSQL via tsvector + índice GIN na coluna `LetraIdx`. Os resultados são ordenados por: correspondência exata da frase > todas as palavras presentes > contagem de palavras. O `TrechoPesquisaHelper` (em `Hinario.Domain/Utils/`) gera trechos de pré-visualização com os termos encontrados envoltos em tags `<b>`.
 
-`TextNormalizer` (in `Hinario.Domain/Utils/`) removes accents and lowercases text — used when searching by `Identificador` (hyphens are also stripped, so `"C-1"` and `"c1"` resolve to the same hymn).
+O `TextNormalizer` (em `Hinario.Domain/Utils/`) remove acentos e converte para minúsculas — usado na busca por `Identificador` (hífens também são removidos, então `"C-1"` e `"c1"` resolvem para o mesmo hino).
 
-## Key API Endpoints
+## Endpoints Principais da API
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/hino` | All hymns |
-| GET | `/api/hino/{id}` | By database ID |
-| GET | `/api/hino/identificador/{identificador}` | By identifier (e.g., `C-1`) |
-| GET | `/api/hino/pesquisar?texto=...` | Full-text search |
-| POST | `/api/hino` | Create |
-| PUT | `/api/hino/{id}` | Update |
-| POST | `/api/hino/importar` | Bulk import (HolyRycs JSON format) |
-| GET | `/api/hino/minerar/canticos/{numero}` | Scrape hymn from external website (1–100) |
-| GET | `/api/hino/{tipo}/{numero}/proximo` | Next hymn in type sequence |
-| GET | `/api/hino/{tipo}/{numero}/anterior` | Previous hymn in type sequence |
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/hino` | Todos os hinos |
+| GET | `/api/hino/{id}` | Por ID do banco de dados |
+| GET | `/api/hino/identificador/{identificador}` | Por identificador (ex.: `C-1`) |
+| GET | `/api/hino/pesquisar?texto=...` | Busca de texto completo |
+| POST | `/api/hino` | Criar |
+| PUT | `/api/hino/{id}` | Atualizar |
+| POST | `/api/hino/importar` | Importação em lote (formato JSON HolyRycs) |
+| GET | `/api/hino/minerar/canticos/{numero}` | Raspar hino de site externo (1–100) |
+| GET | `/api/hino/{tipo}/{numero}/proximo` | Próximo hino na sequência do tipo |
+| GET | `/api/hino/{tipo}/{numero}/anterior` | Hino anterior na sequência do tipo |
 
-## Database
+## Banco de Dados
 
-PostgreSQL hosted on Aiven. Connection string is in `appsettings.json` / `appsettings.Development.json`. EF Core query splitting is enabled globally on the DbContext. The `Identificador` column has a partial unique index (allowing multiple NULLs).
+PostgreSQL hospedado no Aiven. A string de conexão está em `appsettings.json` / `appsettings.Development.json`. O query splitting do EF Core está habilitado globalmente no DbContext. A coluna `Identificador` possui um índice único parcial (permitindo múltiplos NULLs).
 
 ## Web Scraper
 
-`CampinaGrandeMineracaoService` scrapes hymns from an external Igreja em Campina Grande website. It handles multiple character encodings (UTF-8, UTF-16, ISO-8859-1) and parses HTML with HtmlAgilityPack. Accessed via the `/api/hino/minerar/canticos/{numero}` endpoint.
+O `CampinaGrandeMineracaoService` raspa hinos do site externo da Igreja em Campina Grande. Trata múltiplos encodings de caracteres (UTF-8, UTF-16, ISO-8859-1) e faz o parse do HTML com HtmlAgilityPack. Acessado via endpoint `/api/hino/minerar/canticos/{numero}`.
