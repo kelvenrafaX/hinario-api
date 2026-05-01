@@ -3,7 +3,6 @@ using Hinario.Infra.Context;
 using Hinario.Infra.Repositories;
 using Hinario.Domain.Interfaces;
 using Hinario.Application.Services;
-using Hinario.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +33,13 @@ builder.Services.AddHttpClient<ICampinaGrandeMineracaoService, CampinaGrandeMine
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Aplica migrations automaticamente ao iniciar (útil em Docker)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HinarioApiContext>();
+    db.Database.Migrate();
+}
 
 app.UseCors("AllowFront");
 

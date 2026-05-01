@@ -3,7 +3,7 @@ using HtmlAgilityPack;
 using Hinario.Domain.Interfaces;
 using Hinario.Domain.Models;
 
-namespace Hinario.Services
+namespace Hinario.Application.Services
 {
     public class CampinaGrandeMineracaoService : ICampinaGrandeMineracaoService
     {
