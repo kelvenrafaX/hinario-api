@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MinhaPrimeiraApi.Interfaces;
 using MinhaPrimeiraApi.Models;
+using MinhaPrimeiraApi.Models.Dtos;
 using MinhaPrimeiraApi.Utils;
 
 [ApiController]
@@ -64,27 +65,39 @@ public class HinoController : ControllerBase
             return Ok(new List<HinoResultadoPesquisaDto>());
         }
 
-        // Ordenar hinos por prioridade
-        var hinosOrdenados = hinos.OrderBy(hino =>
-        {
-            var letraNormalizada = TextNormalizer.Normalizar(hino.Letra);
-            
-            // 1º prioridade: palavras em sequência
-            var sequenciaCompleta = string.Join(" ", palavras);
-            if (letraNormalizada.Contains(sequenciaCompleta))
-            {
-                return 1;
-            }
+        // Termos para negrito no preview: primeiro a frase completa, depois cada palavra (sem duplicados),
+        // ordenados por tamanho desc para priorizar frases/termos maiores.
+        var termosNegrito = new List<string> { textoNormalizado };
+        termosNegrito.AddRange(palavras);
+        var termosNegritoArray = termosNegrito
+            .Where(t => !string.IsNullOrWhiteSpace(t))
+            .Distinct()
+            .OrderByDescending(t => t.Length)
+            .ToArray();
 
-            // 2º prioridade: todas as palavras presentes (mas não necessariamente em sequência)
-            if (palavras.All(palavra => letraNormalizada.Contains(palavra)))
+        var hinosOrdenados = hinos
+            .Select(h =>
             {
-                return 2;
-            }
+                var letraNormalizada = TextNormalizer.Normalizar(h.Letra ?? "");
+                var temFraseExata = letraNormalizada.Contains(textoNormalizado);
+                var totalPalavrasEncontradas = palavras.Count(p => letraNormalizada.Contains(p));
+                var temTodasPalavras = totalPalavrasEncontradas == palavras.Length;
 
-            // 3º prioridade: apenas algumas palavras presentes
-            return 3;
-        }).ThenBy(hino => hino.Id).ToList();
+                return new
+                {
+                    Hino = h,
+                    TemFraseExata = temFraseExata,
+                    TemTodasPalavras = temTodasPalavras,
+                    TotalPalavrasEncontradas = totalPalavrasEncontradas
+                };
+            })
+            .OrderByDescending(x => x.TemFraseExata)
+            .ThenByDescending(x => x.TemTodasPalavras)
+            .ThenByDescending(x => x.TotalPalavrasEncontradas)
+            .Select(x => x.Hino);
+
+        int pagina = 1;
+        int tamanhoPagina = 10;
 
         // Montar DTOs com o trecho (preview) para cada hino
         var resultado = hinosOrdenados.Select(hino => new HinoResultadoPesquisaDto
@@ -93,28 +106,30 @@ public class HinoController : ControllerBase
             Identificador = hino.Identificador,
             Titulo = hino.Titulo ?? string.Empty,
             Letra = hino.Letra,
-            Trecho = TrechoPesquisaHelper.BuildTrecho(hino, palavras)
-        }).ToList();
+            Trecho = TrechoPesquisaHelper.BuildTrecho(hino, termosNegritoArray)
+        })
+        .Skip((pagina - 1) * tamanhoPagina)
+        .Take(tamanhoPagina)
+        .ToList();
 
         return Ok(resultado);
     }
 
     [HttpPost]
-    public IActionResult CreateHino([FromBody] Hino hino)
+    public IActionResult CreateHino([FromBody] HinoDto hino)
     {
-        Console.WriteLine(hino.Id);
-        _hinoRepository.Add(hino);
-        return CreatedAtAction(nameof(CreateHino), new { id = hino.Id }, hino);
+        _hinoRepository.Add(new Hino
+        {
+            Identificador = hino.Identificador,
+            Letra = hino.Letra ?? string.Empty,
+            Titulo = hino.Titulo ?? string.Empty
+        });
+        return CreatedAtAction(nameof(CreateHino), new { identificador = hino.Identificador }, hino);
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateHino(int id, [FromBody] Hino hino)
+    public IActionResult UpdateHino(int id, [FromBody] HinoDto hino)
     {
-        if (id != hino.Id)
-        {
-            return BadRequest("id do hino não corresponde ao id da rota");
-        }
-
         var hinoExistente = _hinoRepository.GetById(id);
 
         if (hinoExistente == null)
@@ -267,5 +282,27 @@ public class HinoController : ControllerBase
                 erro = ex.Message 
             });
         }
+    }
+
+    [HttpGet("{tipo}/{numero}/proximo")]
+    public async Task<IActionResult> GetProximo(string tipo, int numero)
+    {
+        var proximo = _hinoRepository.ObterProximoPorTipoENumeroAsync(tipo, numero);
+
+        if (proximo != null)
+            return Ok(proximo);
+
+        return NotFound();
+    }
+
+    [HttpGet("{tipo}/{numero}/anterior")]
+    public async Task<IActionResult> GetAnterior(string tipo, int numero)
+    {
+        var anterior = _hinoRepository.ObterAnteriorPorTipoENumeroAsync(tipo, numero);
+
+        if (anterior != null)
+            return Ok(anterior);
+
+        return NotFound();
     }
 }

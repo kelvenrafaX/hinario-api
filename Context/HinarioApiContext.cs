@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MinhaPrimeiraApi.Models;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MinhaPrimeiraApi.Context
 {
@@ -17,9 +18,25 @@ namespace MinhaPrimeiraApi.Context
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Hino>()
+                .Property(h => h.Id)
+                .ValueGeneratedOnAdd()
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+            modelBuilder.Entity<Hino>()
                 .HasIndex(h => h.Identificador)
                 .IsUnique()
                 .HasFilter("\"identificador\" IS NOT NULL");
+
+            modelBuilder.Entity<Hino>(entity =>
+            {
+                entity.Property(h => h.LetraIdx)
+                    .HasColumnName("letra_idx")
+                    .HasColumnType("tsvector")
+                    .ValueGeneratedOnAddOrUpdate(); // coluna gerada pelo banco
+
+                entity.HasIndex(h => h.LetraIdx)
+                    .HasMethod("GIN");
+            });
         }
     }
 }

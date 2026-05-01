@@ -1,3 +1,4 @@
+using NpgsqlTypes;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,6 +18,9 @@ namespace MinhaPrimeiraApi.Models
         public string Letra {get ; set;}
         [Column("titulo")]
         public string Titulo {get ; set;}
+
+        // Coluna gerada pelo banco, somente leitura
+        public NpgsqlTsVector LetraIdx { get; set; }
 
         public Hino()
         {
