@@ -31,6 +31,13 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Aplica migrations automaticamente ao iniciar (útil em Docker)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<HinarioApiContext>();
+    db.Database.Migrate();
+}
+
 app.UseCors("AllowFront");
 
 if (app.Environment.IsDevelopment())

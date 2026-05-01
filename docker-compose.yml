@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hinario-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hinario
+    ports:
+      - "5433:5432"
+    volumes:
+      - hinario_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: hinario-api
+    ports:
+      - "8080:80"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Database=hinario;Username=postgres;Password=postgres"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  hinario_pgdata:
