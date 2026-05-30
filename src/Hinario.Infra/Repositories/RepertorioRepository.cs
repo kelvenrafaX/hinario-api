@@ -22,9 +22,34 @@ namespace Hinario.Infra.Repositories
 
         public Repertorio? GetAtivo() =>
             context.Repertorios
-                .Include(r => r.Itens)
+                .Include(r => r.Itens.OrderBy(i => i.Ordem))
                     .ThenInclude(i => i.Hino)
                 .FirstOrDefault(r => r.Ativo);
+
+        public (List<Repertorio> Items, int Total) GetAtivos(int pagina, int tamanhoPagina, string ordenacao)
+        {
+            var total = context.Repertorios.Count(r => r.Ativo);
+
+            var query = context.Repertorios
+                .Include(r => r.Itens.OrderBy(i => i.Ordem))
+                    .ThenInclude(i => i.Hino)
+                .Where(r => r.Ativo);
+
+            IQueryable<Repertorio> ordenado = ordenacao.ToLower() switch
+            {
+                "data_asc"  => query.OrderBy(r => r.Data),
+                "nome"      => query.OrderBy(r => r.Nome),
+                "nome_desc" => query.OrderByDescending(r => r.Nome),
+                _           => query.OrderByDescending(r => r.Data),
+            };
+
+            var items = ordenado
+                .Skip((pagina - 1) * tamanhoPagina)
+                .Take(tamanhoPagina)
+                .ToList();
+
+            return (items, total);
+        }
 
         public void Add(Repertorio repertorio)
         {

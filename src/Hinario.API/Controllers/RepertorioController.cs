@@ -19,10 +19,16 @@ public class RepertorioController(IRepertorioService repertorioService) : Contro
     }
 
     [HttpGet("ativo")]
-    public IActionResult GetAtivo()
+    public IActionResult GetAtivos(
+        [FromQuery] int pagina = 1,
+        [FromQuery] int tamanhoPagina = 10,
+        [FromQuery] string ordenacao = "data_desc")
     {
-        var repertorio = repertorioService.GetAtivo();
-        return repertorio == null ? NotFound(new { mensagem = "Nenhum repertório ativo no momento." }) : Ok(repertorio);
+        if (pagina < 1) pagina = 1;
+        if (tamanhoPagina < 1) tamanhoPagina = 1;
+        if (tamanhoPagina > 100) tamanhoPagina = 100;
+
+        return Ok(repertorioService.GetAtivos(pagina, tamanhoPagina, ordenacao));
     }
 
     [HttpGet("{id:int}/hinos/{ordem:int}/proximo")]

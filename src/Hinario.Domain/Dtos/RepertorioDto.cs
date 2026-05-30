@@ -1,5 +1,16 @@
+using Hinario.Domain.Models;
+
 namespace Hinario.Domain.Dtos
 {
+    public class RepertoriosAtivosPaginadosDto
+    {
+        public int Pagina { get; set; }
+        public int TamanhoPagina { get; set; }
+        public int Total { get; set; }
+        public int TotalPaginas { get; set; }
+        public List<Repertorio> Repertorios { get; set; } = [];
+    }
+
     public class CriarRepertorioDto
     {
         public string Nome { get; set; } = string.Empty;

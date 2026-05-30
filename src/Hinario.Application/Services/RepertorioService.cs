@@ -1,3 +1,4 @@
+using Hinario.Domain.Dtos;
 using Hinario.Domain.Interfaces;
 using Hinario.Domain.Models;
 
@@ -12,6 +13,19 @@ namespace Hinario.Application.Services
         public Repertorio? GetById(int id) => repertorioRepository.GetById(id);
 
         public Repertorio? GetAtivo() => repertorioRepository.GetAtivo();
+
+        public RepertoriosAtivosPaginadosDto GetAtivos(int pagina, int tamanhoPagina, string ordenacao)
+        {
+            var (items, total) = repertorioRepository.GetAtivos(pagina, tamanhoPagina, ordenacao);
+            return new RepertoriosAtivosPaginadosDto
+            {
+                Pagina = pagina,
+                TamanhoPagina = tamanhoPagina,
+                Total = total,
+                TotalPaginas = (int)Math.Ceiling(total / (double)tamanhoPagina),
+                Repertorios = items
+            };
+        }
 
         public Repertorio Criar(string nome, DateOnly? data)
         {

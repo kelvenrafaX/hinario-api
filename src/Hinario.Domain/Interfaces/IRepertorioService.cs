@@ -1,3 +1,4 @@
+using Hinario.Domain.Dtos;
 using Hinario.Domain.Models;
 
 namespace Hinario.Domain.Interfaces
@@ -7,6 +8,7 @@ namespace Hinario.Domain.Interfaces
         List<Repertorio> GetAll();
         Repertorio? GetById(int id);
         Repertorio? GetAtivo();
+        RepertoriosAtivosPaginadosDto GetAtivos(int pagina, int tamanhoPagina, string ordenacao);
         Repertorio Criar(string nome, DateOnly? data);
         Repertorio? Atualizar(int id, string? nome, DateOnly? data);
         bool Deletar(int id);
