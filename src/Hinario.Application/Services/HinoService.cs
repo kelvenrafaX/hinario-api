@@ -29,6 +29,10 @@ namespace Hinario.Application.Services
             if (palavras.Length == 0)
                 return [];
 
+            // Palavras com acento preservado (só lowercase) para ILike no título funcionar corretamente
+            var palavrasParaTitulo = texto.ToLowerInvariant()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
             var termosNegrito = new[] { textoNormalizado }
                 .Concat(palavras)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
@@ -38,7 +42,7 @@ namespace Hinario.Application.Services
 
             var hinoPorIdentificador = hinoRepository.GetByIdentificador(texto);
 
-            var hinosPorTitulo = hinoRepository.PesquisarPorTitulo(palavras)
+            var hinosPorTitulo = hinoRepository.PesquisarPorTitulo(palavrasParaTitulo)
                 .Where(h => h.Id != hinoPorIdentificador?.Id)
                 .Select(h =>
                 {
