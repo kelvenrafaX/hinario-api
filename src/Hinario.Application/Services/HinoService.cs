@@ -29,9 +29,6 @@ namespace Hinario.Application.Services
             if (palavras.Length == 0)
                 return [];
 
-            var tsQuery = string.Join(" | ", palavras);
-            var hinos = hinoRepository.PesquisarPorTsQuery(tsQuery);
-
             var termosNegrito = new[] { textoNormalizado }
                 .Concat(palavras)
                 .Where(t => !string.IsNullOrWhiteSpace(t))
@@ -39,7 +36,11 @@ namespace Hinario.Application.Services
                 .OrderByDescending(t => t.Length)
                 .ToArray();
 
-            return [.. hinos
+            var hinoPorIdentificador = hinoRepository.GetByIdentificador(texto);
+
+            var tsQuery = string.Join(" | ", palavras);
+            var hinos = hinoRepository.PesquisarPorTsQuery(tsQuery)
+                .Where(h => h.Id != hinoPorIdentificador?.Id)
                 .Select(h =>
                 {
                     var letraNormalizada = TextNormalizer.Normalizar(h.Letra ?? "");
@@ -56,7 +57,6 @@ namespace Hinario.Application.Services
                 .OrderByDescending(x => x.TemFraseExata)
                 .ThenByDescending(x => x.TemTodasPalavras)
                 .ThenByDescending(x => x.TotalPalavrasEncontradas)
-                .Take(TamanhoPagina)
                 .Select(x => new HinoResultadoPesquisaDto
                 {
                     Id = x.Hino.Id,
@@ -64,7 +64,23 @@ namespace Hinario.Application.Services
                     Titulo = x.Hino.Titulo ?? string.Empty,
                     Letra = x.Hino.Letra,
                     Trecho = TrechoPesquisaHelper.BuildTrecho(x.Hino, termosNegrito)
-                })];
+                })
+                .ToList();
+
+            List<HinoResultadoPesquisaDto> resultados = [];
+
+            if (hinoPorIdentificador != null)
+                resultados.Add(new HinoResultadoPesquisaDto
+                {
+                    Id = hinoPorIdentificador.Id,
+                    Identificador = hinoPorIdentificador.Identificador,
+                    Titulo = hinoPorIdentificador.Titulo ?? string.Empty,
+                    Letra = hinoPorIdentificador.Letra,
+                    Trecho = TrechoPesquisaHelper.BuildTrecho(hinoPorIdentificador, termosNegrito)
+                });
+
+            resultados.AddRange(hinos);
+            return resultados.Take(TamanhoPagina).ToList();
         }
 
         public Hino? ObterProximo(string tipo, int numero)
