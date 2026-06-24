@@ -38,25 +38,57 @@ namespace Hinario.Application.Services
 
             var hinoPorIdentificador = hinoRepository.GetByIdentificador(texto);
 
-            var tsQuery = string.Join(" | ", palavras);
-            var hinos = hinoRepository.PesquisarPorTsQuery(tsQuery)
+            var hinosPorTitulo = hinoRepository.PesquisarPorTitulo(palavras)
                 .Where(h => h.Id != hinoPorIdentificador?.Id)
                 .Select(h =>
                 {
-                    var letraNormalizada = TextNormalizer.Normalizar(h.Letra ?? "");
-                    var temFraseExata = letraNormalizada.Contains(textoNormalizado);
-                    var totalPalavrasEncontradas = palavras.Count(p => letraNormalizada.Contains(p));
+                    var tituloNormalizado = TextNormalizer.Normalizar(h.Titulo ?? "");
+                    var temFraseExata = tituloNormalizado.Contains(textoNormalizado);
+                    var totalPalavras = palavras.Count(p => tituloNormalizado.Contains(p));
                     return new
                     {
                         Hino = h,
                         TemFraseExata = temFraseExata,
-                        TemTodasPalavras = totalPalavrasEncontradas == palavras.Length,
-                        TotalPalavrasEncontradas = totalPalavrasEncontradas
+                        TemTodasPalavras = totalPalavras == palavras.Length,
+                        TotalPalavras = totalPalavras
                     };
                 })
                 .OrderByDescending(x => x.TemFraseExata)
                 .ThenByDescending(x => x.TemTodasPalavras)
-                .ThenByDescending(x => x.TotalPalavrasEncontradas)
+                .ThenByDescending(x => x.TotalPalavras)
+                .Select(x => new HinoResultadoPesquisaDto
+                {
+                    Id = x.Hino.Id,
+                    Identificador = x.Hino.Identificador,
+                    Titulo = x.Hino.Titulo ?? string.Empty,
+                    Letra = x.Hino.Letra,
+                    Trecho = TrechoPesquisaHelper.BuildTrecho(x.Hino, termosNegrito)
+                })
+                .ToList();
+
+            var idsJaIncluidos = new HashSet<int>(
+                (hinoPorIdentificador != null ? [hinoPorIdentificador.Id] : Enumerable.Empty<int>())
+                .Concat(hinosPorTitulo.Select(h => h.Id)));
+
+            var tsQuery = string.Join(" | ", palavras);
+            var hinosPorLetra = hinoRepository.PesquisarPorTsQuery(tsQuery)
+                .Where(h => !idsJaIncluidos.Contains(h.Id))
+                .Select(h =>
+                {
+                    var letraNormalizada = TextNormalizer.Normalizar(h.Letra ?? "");
+                    var temFraseExata = letraNormalizada.Contains(textoNormalizado);
+                    var totalPalavras = palavras.Count(p => letraNormalizada.Contains(p));
+                    return new
+                    {
+                        Hino = h,
+                        TemFraseExata = temFraseExata,
+                        TemTodasPalavras = totalPalavras == palavras.Length,
+                        TotalPalavras = totalPalavras
+                    };
+                })
+                .OrderByDescending(x => x.TemFraseExata)
+                .ThenByDescending(x => x.TemTodasPalavras)
+                .ThenByDescending(x => x.TotalPalavras)
                 .Select(x => new HinoResultadoPesquisaDto
                 {
                     Id = x.Hino.Id,
@@ -79,7 +111,8 @@ namespace Hinario.Application.Services
                     Trecho = TrechoPesquisaHelper.BuildTrecho(hinoPorIdentificador, termosNegrito)
                 });
 
-            resultados.AddRange(hinos);
+            resultados.AddRange(hinosPorTitulo);
+            resultados.AddRange(hinosPorLetra);
             return resultados.Take(TamanhoPagina).ToList();
         }
 

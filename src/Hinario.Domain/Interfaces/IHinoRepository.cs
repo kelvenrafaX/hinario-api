@@ -8,6 +8,7 @@ namespace Hinario.Domain.Interfaces
         Hino? GetById(int id);
         Hino? GetByIdentificador(string identificador);
         List<Hino> PesquisarPorTsQuery(string tsQuery);
+        List<Hino> PesquisarPorTitulo(string[] palavras);
         Hino? ObterPrimeiroPorTipo(string tipo);
         Hino? ObterUltimoPorTipo(string tipo);
         Hino? ObterProximoNoTipo(string tipo, int numero);

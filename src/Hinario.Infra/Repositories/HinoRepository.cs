@@ -34,6 +34,22 @@ public class HinoRepository : IHinoRepository
             .ToList();
     }
 
+    public List<Hino> PesquisarPorTitulo(string[] palavras)
+    {
+        if (palavras.Length == 0) return [];
+
+        IQueryable<Hino>? query = null;
+        foreach (var palavra in palavras)
+        {
+            var p = palavra;
+            var sub = _context.Hinos.AsNoTracking()
+                .Where(h => h.Titulo != null && EF.Functions.ILike(h.Titulo, $"%{p}%"));
+            query = query == null ? sub : query.Union(sub);
+        }
+
+        return query!.ToList();
+    }
+
     public Hino? ObterPrimeiroPorTipo(string tipo)
     {
         return _context.Hinos
