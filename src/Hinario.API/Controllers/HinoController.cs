@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Hinario.Domain.Dtos;
 using Hinario.Domain.Interfaces;
 using Hinario.Domain.Models;
 
@@ -41,8 +42,9 @@ public class HinoController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult CreateHino([FromBody] Hino hino)
+    public IActionResult CreateHino([FromBody] HinoDto dto)
     {
+        var hino = new Hino { Identificador = dto.Identificador, Letra = dto.Letra!, Titulo = dto.Titulo! };
         _hinoService.Add(hino);
         return CreatedAtAction(nameof(GetHino), new { id = hino.Id }, hino);
     }

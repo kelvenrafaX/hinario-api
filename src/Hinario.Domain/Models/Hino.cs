@@ -20,7 +20,7 @@ namespace Hinario.Domain.Models
         public string Titulo {get ; set;}
 
         // Coluna gerada pelo banco, somente leitura
-        public NpgsqlTsVector LetraIdx { get; set; }
+        public NpgsqlTsVector? LetraIdx { get; set; }
 
         public Hino()
         {
